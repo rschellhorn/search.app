@@ -1,0 +1,8 @@
+GET     /                           controllers.Searcher.index
+POST    /                           controllers.Searcher.search
+GET     /autocomplete               controllers.Searcher.autocomplete(q)
+GET     /lom/*id                    controllers.Searcher.show(id)
+POST    /bulk-index                 controllers.Indexer.bulkIndex
+
+GET     /assets/*file               controllers.Assets.at(path="/public", file)
+GET     /webjars/*file              controllers.WebJarAssets.at(file)

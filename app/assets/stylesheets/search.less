@@ -1,0 +1,31 @@
+.container {
+    min-width: 1000px;
+    width: 80%;
+}
+
+.facets > * {
+    margin-bottom: 20px;
+}
+
+.hits {
+    .suggestions {
+        a:after {
+            color: #303030;
+            content: "•";
+            margin: 0 10px;
+        }
+        a:last-child:after {
+            content: "";
+            margin: 0;
+        }
+    }
+
+    article {
+        border-bottom: 1px dashed #000;
+        margin-bottom: 20px;
+
+        em {
+            background: yellow
+        }
+    }
+}

@@ -1,0 +1,63 @@
+<!doctype html>
+<html ng-app="searchApp">
+    <head>
+        <title>@Messages("main.title")</title>
+        <link href="@routes.WebJarAssets.at(WebJarAssets.locate("bootstrap.min.css"))" rel="stylesheet" type="text/css">
+        <link href="@routes.Assets.at("stylesheets/search.css")" rel="stylesheet" type="text/css">
+        <script src="@routes.WebJarAssets.at(WebJarAssets.locate("jquery.min.js"))" type="text/javascript"></script>
+        <script src="@routes.WebJarAssets.at(WebJarAssets.locate("bootstrap.min.js"))" type="text/javascript"></script>
+        <script src="@routes.WebJarAssets.at(WebJarAssets.locate("angular.min.js"))" type="text/javascript"></script>
+        <script src="@routes.WebJarAssets.at(WebJarAssets.locate("angular-strap.min.js"))" type="text/javascript"></script>
+        <script src="@routes.WebJarAssets.at(WebJarAssets.locate("highcharts.js"))" type="text/javascript"></script>
+        <script src="@routes.Assets.at("javascripts/angular/directives/highchart.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.at("javascripts/search.min.js")" type="text/javascript"></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body ng-controller="SearchCtrl">
+        <div class="navbar">
+            <div class="navbar-inner">
+                <a class="brand" href="#">@Messages("main.title")</a>
+                <ul class="nav pull-right">
+                    <li>
+                        @helper.form(routes.Searcher.search, 'class -> "navbar-search pull-right", Symbol("ng-submit") -> "search()") {
+                            <input ng-model="command.query" ng-change="search()" type="text" class="search-query" placeholder="Search" autocomplete="off" accesskey="s" tabindex="1">
+                        }
+                    </li>
+                    <li class="divider-vertical"></li>
+                    <li>
+                        <div class="btn-group pull-right" ng-model="command.order" ng-change="search()" bs-buttons-radio>
+                            <button type="button" class="btn active" value="relevance"><i class="icon-circle-arrow-up"></i> Relevance</button>
+                            <button type="button" class="btn" value="title"><i class="icon-font"></i> Title</button>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="container">
+            <div class="row-fluid">
+                <section class="hits span7">
+                    <h1><ng-pluralize count="hits.total" when="resultForms"></ng-pluralize></h1>
+                    <nav class="suggestions">
+                        <a href ng-click="suggest(suggestion)" ng-repeat="suggestion in suggestions">{{suggestion}}</a>
+                    </nav>
+                    <div class="pagination pagination-centered">
+                        <ul>
+                            <li ng-repeat="page in pages" ng-class="{active: command.page==page}"><a href ng-click="gotoPage(page)">{{page}}</a></li>
+                        </ul>
+                    </div>
+                    <article ng-repeat="hit in hits.hits">
+                        <h4>
+                            <a href="/lom/{{hit.id}}" class="badge pull-right">xml</a>
+                            <a href="{{hit.location}}" ng-bind-html-unsafe="hit.title"></a>
+                        </h4>
+                        <p ng-bind-html-unsafe="hit.description"></p>
+                    </article>
+                </section>
+                <section class="facets span5">
+                    <chart value="{{contexts}}" type="pie" height="400"></chart>
+                    <chart value="{{repositories}}" type="pie" height="400"></chart>
+                </section>
+            </div>
+        </div>
+    </body>
+</html>
