@@ -1,4 +1,4 @@
-app = angular.module 'searchApp', ['chart.directives', '$strap.directives']
+app = angular.module 'searchApp', ['chart.directives', 'infinite-scroll', '$strap.directives']
 app.controller 'SearchCtrl', ($scope, $http) ->
 
     toHits = (data) ->
@@ -23,11 +23,12 @@ app.controller 'SearchCtrl', ($scope, $http) ->
                 y: term.count
         ]
 
+    $scope.busy = false
+
     $scope.command =
         query: ''
         order: 'relevance'
         page: 1
-        pageSize: 10
 
     $scope.resultForms =
         0: 'Geen resultaten'
@@ -43,6 +44,14 @@ app.controller 'SearchCtrl', ($scope, $http) ->
         $scope.search()
 
     $scope.typeahead = (query, callback) -> $http.get("/autocomplete?q=#{query}").success callback
+
+    $scope.nextPage = ->
+      if (!$scope.busy)
+          $scope.busy = true
+          $scope.command.page += 1
+          $http.post('/', $scope.command).success (data) ->
+            $scope.hits.hits.push(hit) for hit in toHits(data.hits).hits
+            $scope.busy = false
 
     $scope.search = ->
         $http.post('/', $scope.command).success (data) ->

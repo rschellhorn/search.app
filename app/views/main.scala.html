@@ -10,6 +10,7 @@
         <script src="@routes.WebJarAssets.at(WebJarAssets.locate("angular-strap.min.js"))" type="text/javascript"></script>
         <script src="@routes.WebJarAssets.at(WebJarAssets.locate("highcharts.js"))" type="text/javascript"></script>
         <script src="@routes.Assets.at("javascripts/angular/directives/highchart.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.at("javascripts/angular/directives/ng-infinite-scroll.min.js")" type="text/javascript"></script>
         <script src="@routes.Assets.at("javascripts/search.min.js")" type="text/javascript"></script>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
@@ -35,7 +36,7 @@
         </div>
         <div class="container">
             <div class="row-fluid">
-                <section class="hits span7">
+                <section class="hits span7" infinite-scroll="nextPage()">
                     <h1><ng-pluralize count="hits.total" when="resultForms"></ng-pluralize></h1>
                     <nav class="suggestions">
                         <a href ng-click="suggest(suggestion)" ng-repeat="suggestion in suggestions">{{suggestion}}</a>
