@@ -39,10 +39,6 @@ app.controller 'SearchCtrl', ($scope, $http) ->
         $scope.command.query = suggestion
         $scope.search()
 
-    $scope.gotoPage = (page) ->
-        $scope.command.page = page
-        $scope.search()
-
     $scope.typeahead = (query, callback) -> $http.get("/autocomplete?q=#{query}").success callback
 
     $scope.nextPage = ->
@@ -55,11 +51,7 @@ app.controller 'SearchCtrl', ($scope, $http) ->
 
     $scope.search = ->
         $http.post('/', $scope.command).success (data) ->
-            maxPages = data.hits.total / $scope.command.pageSize
-            pages = [($scope.command.page - 5) ... ($scope.command.page + 5)].filter (p) -> p > 0 and p < maxPages
-
             $scope.hits = toHits(data.hits)
-            $scope.pages = pages
             $scope.suggestions = data.suggestions
             $scope.contexts = termsChart(data.facets.contexts)
             $scope.repositories = termsChart(data.facets.repositories)

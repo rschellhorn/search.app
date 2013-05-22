@@ -41,11 +41,6 @@
                     <nav class="suggestions">
                         <a href ng-click="suggest(suggestion)" ng-repeat="suggestion in suggestions">{{suggestion}}</a>
                     </nav>
-                    <div class="pagination pagination-centered">
-                        <ul>
-                            <li ng-repeat="page in pages" ng-class="{active: command.page==page}"><a href ng-click="gotoPage(page)">{{page}}</a></li>
-                        </ul>
-                    </div>
                     <article ng-repeat="hit in hits.hits">
                         <h4>
                             <a href="/lom/{{hit.id}}" class="badge pull-right">xml</a>
