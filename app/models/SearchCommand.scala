@@ -47,6 +47,10 @@ object SearchCommand {
         )
     )
 
+    val filterEmptyFields = fields.map { field =>
+        Json.obj("exists" -> Json.obj("field" -> field))
+    }
+
     implicit object SearchCommandWrites extends Writes[SearchCommand] {
         def writes(command: SearchCommand) = {
 
@@ -68,7 +72,7 @@ object SearchCommand {
                 Json.obj("term" -> Json.obj("repository" -> repository))
             }
 
-            val queryWithFilters = Seq(context, repository).flatten ++ fields.map(f => Json.obj("exists" -> Json.obj("field" -> f))) match {
+            val queryWithFilters = Seq(context, repository).flatten ++ filterEmptyFields match {
                 case Nil => query
                 case filters => Json.obj(
                     "filtered" -> Json.obj(
