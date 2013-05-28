@@ -58,11 +58,14 @@ object Indexer extends Controller {
 
     private implicit class RichNodeSeq(val nodes: NodeSeq) extends AnyVal {
 
-        private def contribution(node: Node) = {
-            Json.obj(
+        private def contribution(node: Node) =
+            for (
+                node <- (node\"centity"\"vcard").headOption;
+                vcard <- models.Vcard(node.text)
+            ) yield Json.obj(
+                "name" -> vcard.formattedName,
                 "timestamp" -> (node\"date"\"datetime").text
             )
-        }
 
         private def langString(node: Node) = node.find { node => (node\"langstring"\"@language").text == "nl" }
                                          .orElse { node\"langstring" headOption }
@@ -72,6 +75,6 @@ object Indexer extends Controller {
         def asDuration = Try(Period.parse(nodes.text)).map(_.getHours()).toOption
         def bestValue = nodes.headOption.flatMap(langString)
         def bestValues = nodes.flatMap(langString)
-        def asContributions = nodes.map(contribution)
+        def asContributions = nodes.flatMap(contribution)
     }
 }

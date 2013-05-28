@@ -29,6 +29,13 @@ object SearchCommand {
                     "field" -> "context"
                 )
             ),
+            "contributions" -> Json.obj(
+                "nested" -> "contribution",
+                "date_histogram" -> Json.obj(
+                    "field" -> "contribution.timestamp",
+                    "interval" -> "year"
+                )
+            ),
             "repositories" -> Json.obj(
                 "terms" -> Json.obj(
                     "field" -> "repository",

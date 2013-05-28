@@ -37,6 +37,7 @@
                 "contribution": {
                     "type": "nested",
                     "properties": {
+                        "name": { "type": "string" },
                         "timestamp": { "type": "date", "format": "date_hour_minute_second", "ignore_malformed": true }
                     }
                 },
