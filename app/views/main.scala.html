@@ -21,7 +21,7 @@
                 <ul class="nav pull-right">
                     <li>
                         @helper.form(routes.Searcher.search, 'class -> "navbar-search pull-right", Symbol("ng-submit") -> "search()") {
-                            <input ng-model="command.query" ng-change="search()" type="text" class="search-query" placeholder="Search" autocomplete="off" accesskey="s" tabindex="1">
+                            <input ng-model="command.query" ng-change="search()" type="text" class="search-query" placeholder="Search" autocomplete="off" accesskey="s" tabindex="1"  bs-typeahead="typeahead">
                         }
                     </li>
                     <li class="divider-vertical"></li>

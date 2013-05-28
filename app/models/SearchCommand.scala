@@ -51,9 +51,27 @@ object SearchCommand {
         Json.obj("exists" -> Json.obj("field" -> field))
     }
 
-    implicit object SearchCommandWrites extends Writes[SearchCommand] {
-        def writes(command: SearchCommand) = {
+    implicit class RichCommand(val command: SearchCommand) extends AnyVal {
 
+        def toAutocompleteQuery = Json.obj(
+            "query" -> Json.obj(
+                "filtered" -> Json.obj(
+                    "query" -> Json.obj(
+                        "match" -> Json.obj(
+                            "title.autocomplete" -> command.query
+                        )
+                    ),
+                    "filter" -> Json.obj(
+                        "and" -> Json.obj(
+                            "filters" -> filterEmptyFields
+                        )
+                    )
+                )
+            ),
+            "fields" -> Seq("title")
+        )
+
+        def toSearchQuery = {
             val query = command.query.map { query =>
                  Json.obj(
                     "multi_match" -> Json.obj(

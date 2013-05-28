@@ -39,7 +39,9 @@ app.controller 'SearchCtrl', ($scope, $http) ->
         $scope.command.query = suggestion
         $scope.search()
 
-    $scope.typeahead = (query, callback) -> $http.get("/autocomplete?q=#{query}").success callback
+    $scope.typeahead = (query, callback) -> $http.get("/autocomplete?q=#{query}").success (data) ->
+        callback data.hits.hits.map (hit) ->
+            hit.fields.title
 
     $scope.nextPage = ->
       if (!$scope.busy)

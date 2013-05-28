@@ -35,13 +35,16 @@ object Searcher extends Controller {
         commandForm.bindFromRequest.fold(
             errors => Forbidden(errors.errorsAsJson),
             command => Async {
-                WS.url(s"$endpoint/_search").post(Json.toJson(command)).map(r => Ok(r.json))
+                WS.url(s"$endpoint/_search").post(command.toSearchQuery).map(r => Ok(r.json))
             }
         )
     }
 
-    def autocomplete(q: String) = Action { implicit request =>
-        Ok(Json.arr("foo", "bar", q))
+    def autocomplete(q: String) = Action {
+        Async {
+            val command = commandForm.bind(Map("query" -> q)).get
+            WS.url(s"$endpoint/_search").post(command.toAutocompleteQuery).map(r => Ok(r.json))
+        }
     }
 
     def show(id: String) = Action {

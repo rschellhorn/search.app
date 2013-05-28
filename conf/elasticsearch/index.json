@@ -2,6 +2,13 @@
     "settings": {
         "number_of_shards": 5,
         "analysis": {
+            "filter": {
+                "autocomplete": {
+                    "max_gram": 20,
+                    "min_gram": 1,
+                    "type": "edge_ngram"
+                }
+            },
             "analyzer": {
                 "html_analyzer": {
                     "type": "custom",
@@ -9,6 +16,10 @@
                     "char_filter": [ "scrub_html" ],
                     "tokenizer": "standard",
                     "filter": [ "standard", "lowercase" ]
+                },
+                "autocomplete": {
+                    "filter": [ "standard", "lowercase", "autocomplete" ],
+                    "tokenizer": "standard"
                 }
             },
             "char_filter": {
@@ -40,6 +51,7 @@
                     "type": "multi_field",
                     "fields": {
                         "title" : { "type": "string", "store": "yes", "term_vector": "with_positions_offsets" },
+                        "autocomplete": { "type" : "string", "analyzer" : "autocomplete" },
                         "untouched" : { "type": "string", "index": "not_analyzed", "null_value": "ZZZZZZ" }
                     }
                 }
