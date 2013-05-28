@@ -23,7 +23,7 @@ app.controller 'SearchCtrl', ($scope, $http) ->
                 y: term.count
         ]
 
-    $scope.busy = false
+    busy = false
 
     $scope.command =
         query: ''
@@ -45,17 +45,19 @@ app.controller 'SearchCtrl', ($scope, $http) ->
 
     $scope.nextPage = ->
       if (!$scope.busy)
-          $scope.busy = true
+          busy = true
           $scope.command.page += 1
           $http.post('/', $scope.command).success (data) ->
             $scope.hits.hits.push(hit) for hit in toHits(data.hits).hits
-            $scope.busy = false
+            busy = false
 
     $scope.search = ->
+        $scope.command.page = 1
         $http.post('/', $scope.command).success (data) ->
             $scope.hits = toHits(data.hits)
             $scope.suggestions = data.suggestions
-            $scope.contexts = termsChart(data.facets.contexts)
-            $scope.repositories = termsChart(data.facets.repositories)
+            if (data.facets)
+                $scope.contexts = termsChart(data.facets.contexts)
+                $scope.repositories = termsChart(data.facets.repositories)
 
     $scope.search()
