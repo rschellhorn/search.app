@@ -22,7 +22,10 @@ object SearchCommand {
                 "title" -> Json.obj(),
                 "description" -> Json.obj()
             )
-        ),
+        )
+    )
+
+    val facets = Json.obj(
         "facets" -> Json.obj(
             "contexts" -> Json.obj(
                 "terms" -> Json.obj(
@@ -45,73 +48,55 @@ object SearchCommand {
         )
     )
 
-    val matchAll = Json.obj("match_all" -> Json.obj())
     val sortOrders = Map(
-        "title" -> Json.obj(
-            "sort" -> Json.obj(
-                "title.untouched" -> Json.obj("order" -> "asc")
-            )
-        )
-    )
+        "title" -> Json.obj("title.untouched" -> Json.obj("order" -> "asc"))
+    ).withDefaultValue(Json.obj("_score" -> Json.obj()))
 
     val filterEmptyFields = fields.map { field =>
         Json.obj("exists" -> Json.obj("field" -> field))
     }
 
     implicit class RichCommand(val command: SearchCommand) extends AnyVal {
+        private def query = command.query.map { query =>
+             Json.obj(
+                "multi_match" -> Json.obj(
+                    "query" -> query,
+                    "fields" -> Seq("title", "description"),
+                    "type" -> "phrase_prefix"
+                )
+            )
+        }
 
-        def toAutocompleteQuery = Json.obj(
-            "query" -> Json.obj(
-                "filtered" -> Json.obj(
-                    "query" -> Json.obj(
-                        "match" -> Json.obj(
-                            "title.autocomplete" -> command.query
-                        )
-                    ),
-                    "filter" -> Json.obj(
-                        "and" -> Json.obj(
-                            "filters" -> filterEmptyFields
-                        )
+        private def context = command.context.map { context =>
+            Json.obj("term" -> Json.obj("context" -> context))
+        }
+
+        private def repository = command.repository.map { repository =>
+            Json.obj("term" -> Json.obj("repository" -> repository))
+        }
+
+        private def queryWithFilters =  Json.obj(
+            "filtered" -> Json.obj(
+                "query" -> query,
+                "filter" -> Json.obj(
+                    "and" -> Json.obj(
+                        "filters" -> (Seq(context, repository).flatten ++ filterEmptyFields)
                     )
                 )
-            ),
-            "fields" -> Seq("title")
+            )
         )
 
-        def toSearchQuery = {
-            val query = command.query.map { query =>
-                 Json.obj(
-                    "multi_match" -> Json.obj(
-                        "query" -> query,
-                        "fields" -> Seq("title", "description"),
-                        "type" -> "phrase_prefix"
-                    )
-                )
-            }.getOrElse(matchAll)
+        def toSearchQuery = command.page match {
+            case 1 => completeQuery
+            case n => Json.obj(
+                "query" -> queryWithFilters,
+                "from" -> (n-1) * command.pageSize,
+                "size" -> command.pageSize,
+                "sort" -> command.order.map(sortOrders)
+            ) ++ skeleton
+        }
 
-            val context = command.context.map { context =>
-                Json.obj("term" -> Json.obj("context" -> context))
-            }
-
-            val repository = command.repository.map { repository =>
-                Json.obj("term" -> Json.obj("repository" -> repository))
-            }
-
-            val queryWithFilters = Seq(context, repository).flatten ++ filterEmptyFields match {
-                case Nil => query
-                case filters => Json.obj(
-                    "filtered" -> Json.obj(
-                        "query" -> query,
-                        "filter" -> Json.obj(
-                            "and" -> Json.obj(
-                                "filters" -> filters
-                            )
-                        )
-                    )
-                )
-            }
-
-            val sort = command.order.flatMap(sortOrders.get)
+        def completeQuery = {
 
             val suggest = command.query.map { query =>
                 Json.obj(
@@ -132,8 +117,27 @@ object SearchCommand {
             Json.obj(
                 "query" -> queryWithFilters,
                 "from" -> (command.page-1) * command.pageSize,
-                "size" -> command.pageSize
-            ) ++ Seq(sort, suggest).flatten.foldLeft(skeleton) { _ ++ _ }
+                "size" -> command.pageSize,
+                "sort" -> command.order.map(sortOrders)
+            ) ++ Seq(suggest).flatten.foldLeft(skeleton ++ facets) { _ ++ _ }
         }
+
+        def toAutocompleteQuery = Json.obj(
+            "query" -> Json.obj(
+                "filtered" -> Json.obj(
+                    "query" -> Json.obj(
+                        "match" -> Json.obj(
+                            "title.autocomplete" -> command.query
+                        )
+                    ),
+                    "filter" -> Json.obj(
+                        "and" -> Json.obj(
+                            "filters" -> filterEmptyFields
+                        )
+                    )
+                )
+            ),
+            "fields" -> Seq("title")
+        )
     }
 }
