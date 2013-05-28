@@ -13,8 +13,6 @@ import play.api.mvc.{ Action, Controller }
 import scala.collection.JavaConversions._
 import scala.util.Try
 import scala.xml.{ Node, NodeSeq }
-import org.joda.time.DateTime
-import org.joda.time.format.DateTimeFormat
 
 /**
  * curl -XPOST --data-urlencode "store=/path/to/loms" http://localhost:9000/bulk-index

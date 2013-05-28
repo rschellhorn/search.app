@@ -27,7 +27,7 @@ object Searcher extends Controller {
         )(SearchCommand.apply)(SearchCommand.unapply)
     )
 
-    def index = Action { implicit request =>
+    def index = Action {
         Ok(views.html.main())
     }
 
