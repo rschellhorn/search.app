@@ -11,7 +11,7 @@ object ApplicationBuild extends Build {
         "com.googlecode.ez-vcard" % "ez-vcard" % "0.8.1",
         "org.webjars" % "angular-strap" % "0.7.3",
         "org.webjars" % "highcharts" % "3.0.1",
-        "org.webjars" % "webjars-play" % "2.1.0-2"
+        "org.webjars" %% "webjars-play" % "2.1.0-2"
     )
 
     val main = play.Project(appName, appVersion, appDependencies).settings()
