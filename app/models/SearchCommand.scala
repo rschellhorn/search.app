@@ -70,7 +70,7 @@ object SearchCommand {
                 )
             )
         ),
-        "fields" -> Seq("title")
+        "fields" -> "title"
     )
 
     implicit class RichCommand(val command: SearchCommand) extends AnyVal {
