@@ -49,9 +49,9 @@ object Searcher extends Controller {
 
     def show(id: String) = Action {
         Async {
-            WS.url(s"$endpoint/lom/$id").get.map {
-                case response if response.status == NotFound => NotFound
-                case response => Ok.sendFile(new File((response.json\"_source"\"file").as[String]), inline = true).as(XML)
+            WS.url(s"$endpoint/lom/$id/_source").get.map {
+                case response if response.status == OK => Ok.sendFile(new File((response.json\"file").as[String]), inline = true).as(XML)
+                case response => NotFound
             }
         }
     }

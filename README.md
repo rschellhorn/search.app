@@ -5,7 +5,7 @@
 ### Prerequisites
 
 * Play 2.1
-* Elasticsearch 0.9
+* Elasticsearch 0.9.1
 
 ### Start server
 
