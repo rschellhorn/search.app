@@ -6,9 +6,10 @@ case class SearchCommand(
     query: Option[String],
     context: Option[String],
     repository: Option[String],
-    order: Option[String],
+    order: String,
     page: Int,
-    pageSize: Int)
+    pageSize: Int,
+    facets: Seq[String])
 
 object SearchCommand {
 
@@ -26,35 +27,51 @@ object SearchCommand {
     )
 
     val facets = Json.obj(
-        "facets" -> Json.obj(
-            "contexts" -> Json.obj(
-                "terms" -> Json.obj(
-                    "field" -> "context"
-                )
-            ),
-            "contributions" -> Json.obj(
-                "nested" -> "contribution",
-                "date_histogram" -> Json.obj(
-                    "field" -> "contribution.timestamp",
-                    "interval" -> "year"
-                )
-            ),
-            "repositories" -> Json.obj(
-                "terms" -> Json.obj(
-                    "field" -> "repository",
-                    "size" -> 5
-                )
+        "contexts" -> Json.obj(
+            "terms" -> Json.obj(
+                "field" -> "context"
+            )
+        ),
+        "contributions" -> Json.obj(
+            "nested" -> "contribution",
+            "terms" -> Json.obj(
+                "field" -> "contribution.name"
+            )
+        ),
+        "repositories" -> Json.obj(
+            "terms" -> Json.obj(
+                "field" -> "repository",
+                "size" -> 5
             )
         )
     )
 
     val sortOrders = Map(
+        "relevance" -> Json.obj("_score" -> Json.obj()),
         "title" -> Json.obj("title.untouched" -> Json.obj("order" -> "asc"))
-    ).withDefaultValue(Json.obj("_score" -> Json.obj()))
+    )
 
     val filterEmptyFields = fields.map { field =>
         Json.obj("exists" -> Json.obj("field" -> field))
     }
+
+    def toAutocompleteQuery(query: String) = Json.obj(
+        "query" -> Json.obj(
+            "filtered" -> Json.obj(
+                "query" -> Json.obj(
+                    "match" -> Json.obj(
+                        "title.autocomplete" -> query
+                    )
+                ),
+                "filter" -> Json.obj(
+                    "and" -> Json.obj(
+                        "filters" -> filterEmptyFields
+                    )
+                )
+            )
+        ),
+        "fields" -> Seq("title")
+    )
 
     implicit class RichCommand(val command: SearchCommand) extends AnyVal {
         private def query = command.query.map { query =>
@@ -92,7 +109,7 @@ object SearchCommand {
                 "query" -> queryWithFilters,
                 "from" -> (n-1) * command.pageSize,
                 "size" -> command.pageSize,
-                "sort" -> command.order.map(sortOrders)
+                "sort" -> sortOrders(command.order)
             ) ++ skeleton
         }
 
@@ -118,26 +135,9 @@ object SearchCommand {
                 "query" -> queryWithFilters,
                 "from" -> (command.page-1) * command.pageSize,
                 "size" -> command.pageSize,
-                "sort" -> command.order.map(sortOrders)
-            ) ++ Seq(suggest).flatten.foldLeft(skeleton ++ facets) { _ ++ _ }
+                "sort" -> sortOrders(command.order),
+                "facets" -> (facets.keys -- command.facets).foldLeft(facets) { (facets, name) => facets - name }
+            ) ++ Seq(suggest).flatten.foldLeft(skeleton) { _ ++ _ }
         }
-
-        def toAutocompleteQuery = Json.obj(
-            "query" -> Json.obj(
-                "filtered" -> Json.obj(
-                    "query" -> Json.obj(
-                        "match" -> Json.obj(
-                            "title.autocomplete" -> command.query
-                        )
-                    ),
-                    "filter" -> Json.obj(
-                        "and" -> Json.obj(
-                            "filters" -> filterEmptyFields
-                        )
-                    )
-                )
-            ),
-            "fields" -> Seq("title")
-        )
     }
 }

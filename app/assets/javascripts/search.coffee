@@ -28,7 +28,8 @@ app.controller 'SearchCtrl', ($scope, $http) ->
     $scope.command =
         query: ''
         order: 'relevance'
-        page: 1
+        page: 1,
+        facets: [ "contexts", "contributions", "repositories" ]
 
     $scope.resultForms =
         0: 'Geen resultaten'
@@ -59,5 +60,6 @@ app.controller 'SearchCtrl', ($scope, $http) ->
             if (data.facets)
                 $scope.contexts = termsChart(data.facets.contexts)
                 $scope.repositories = termsChart(data.facets.repositories)
+                $scope.contributions = termsChart(data.facets.contributions)
 
     $scope.search()

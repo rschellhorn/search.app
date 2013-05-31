@@ -43,6 +43,7 @@ object Indexer extends Controller {
                             "duration"          -> (xml\"educational"\"typicalLearningTime"\"duration").asDuration,
                             "contribution"      -> (xml\"lifecycle"\"contribute").asContributions,
                             "location"          -> (xml\"technical"\"location").headOption.map(_.text),
+                            "format"            -> (xml\"technical"\"format").headOption.map(_.text),
                             "repository"        -> filename.split(":").headOption,
                             "file"              -> file.toAbsolutePath().toString()
                         )
