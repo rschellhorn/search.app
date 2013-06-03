@@ -40,7 +40,7 @@ object SearchCommand {
         ),
         "repositories" -> Json.obj(
             "terms" -> Json.obj(
-                "field" -> "repository",
+                "field" -> "repository.untouched",
                 "size" -> 5
             )
         )
@@ -55,22 +55,21 @@ object SearchCommand {
         Json.obj("exists" -> Json.obj("field" -> field))
     }
 
+    val autocompleteFields = Map(
+        "contexts" -> "context",
+        "repositories" -> "repository"
+    )
+
     def toAutocompleteQuery(query: String) = Json.obj(
-        "query" -> Json.obj(
-            "filtered" -> Json.obj(
-                "query" -> Json.obj(
-                    "match" -> Json.obj(
-                        "title.autocomplete" -> query
-                    )
-                ),
-                "filter" -> Json.obj(
-                    "and" -> Json.obj(
-                        "filters" -> filterEmptyFields
-                    )
+        "size" -> 0,
+        "facets" -> autocompleteFields.mapValues { field =>
+            Json.obj(
+                "terms" -> Json.obj("field" -> s"$field.untouched"),
+                "facet_filter" -> Json.obj(
+                    "term" -> Json.obj(s"$field.autocomplete" -> query)
                 )
             )
-        ),
-        "fields" -> "title"
+        }
     )
 
     implicit class RichCommand(val command: SearchCommand) extends AnyVal {
