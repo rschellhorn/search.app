@@ -29,7 +29,7 @@ object SearchCommand {
     val facets = Json.obj(
         "contexts" -> Json.obj(
             "terms" -> Json.obj(
-                "field" -> "context"
+                "field" -> "context.untouched"
             )
         ),
         "contributions" -> Json.obj(

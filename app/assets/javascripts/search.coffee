@@ -41,8 +41,10 @@ app.controller 'SearchCtrl', ($scope, $http) ->
         $scope.search()
 
     $scope.typeahead = (query, callback) -> $http.get("/autocomplete?q=#{query}").success (data) ->
-        callback data.hits.hits.map (hit) ->
-            hit.fields.title
+        all = []
+        all.push("context: #{term.term}") for term in data.facets.contexts?.terms
+        all.push("repository: #{term.term}") for term in data.facets.repositories.terms
+        callback all
 
     $scope.nextPage = ->
       if (!$scope.busy)
