@@ -57,6 +57,7 @@ object SearchCommand {
 
     val autocompleteFields = Map(
         "contexts" -> "context",
+        "keywords" -> "keyword",
         "repositories" -> "repository"
     )
 
