@@ -18,8 +18,8 @@ object Searcher extends Controller {
     val commandForm = Form(
         mapping(
             "query" -> optional(text),
-            "context" -> optional(text),
-            "repository" -> optional(text),
+            "context" -> seq(text),
+            "repository" -> seq(text),
             "order" -> default(text.verifying(SearchCommand.sortOrders.contains(_)), "title"),
             "page" -> default(number(min = 1), 1),
             "pageSize" -> default(number(min = 0, max = 100), 10),

@@ -4,8 +4,8 @@ import play.api.libs.json._
 
 case class SearchCommand(
     query: Option[String],
-    context: Option[String],
-    repository: Option[String],
+    contexts: Seq[String],
+    repositories: Seq[String],
     order: String,
     page: Int,
     pageSize: Int,
@@ -84,12 +84,14 @@ object SearchCommand {
             )
         }
 
-        private def context = command.context.map { context =>
-            Json.obj("term" -> Json.obj("context" -> context))
+        private def contexts = command.contexts match {
+            case Nil => None
+            case contexts => Some(Json.obj("in" -> Json.obj("context" -> contexts)))
         }
 
-        private def repository = command.repository.map { repository =>
-            Json.obj("term" -> Json.obj("repository" -> repository))
+        private def repositories = command.repositories match {
+          case Nil => None
+          case repositories => Some(Json.obj("in" -> Json.obj("repositories" -> command.repositories)))
         }
 
         private def queryWithFilters =  Json.obj(
@@ -97,7 +99,7 @@ object SearchCommand {
                 "query" -> query,
                 "filter" -> Json.obj(
                     "and" -> Json.obj(
-                        "filters" -> (Seq(context, repository).flatten ++ filterEmptyFields)
+                        "filters" -> (Seq(contexts, repositories).flatten ++ filterEmptyFields)
                     )
                 )
             )
