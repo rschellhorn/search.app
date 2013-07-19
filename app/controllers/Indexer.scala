@@ -28,10 +28,10 @@ object Indexer extends Controller {
             store => Async {
                 WS.url(endpoint).post(Play.current.getFile("conf/elasticsearch/index.json")).map { response =>
                     Logger.info(response.body)
-                    for (
-                        directory <- Files.newDirectoryStream(Paths.get(store)).filter(Files.isDirectory(_));
+                    for {
+                        directory <- Files.newDirectoryStream(Paths.get(store)).filter(Files.isDirectory(_))
                         file <- Files.newDirectoryStream(directory)
-                    ) {
+                    } {
                         val filename = file.getFileName().toString().replaceAllLiterally("%2F", ":")
                         val xml = scala.xml.XML.loadFile(file.toFile())
                         val json = Json.obj(
