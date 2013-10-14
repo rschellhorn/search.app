@@ -11,6 +11,7 @@ import play.api.libs.json.Json
 import play.api.libs.ws.WS
 import play.api.mvc.{ Action, Controller }
 import scala.collection.JavaConversions._
+import scala.concurrent.Future
 import scala.util.Try
 import scala.xml.{ Node, NodeSeq }
 
@@ -22,37 +23,35 @@ object Indexer extends Controller {
     val endpoint = Play.configuration.getString("elasticsearch.index.endpoint").get
     val form = Form("store" -> text)
 
-    def bulkIndex = Action { implicit request =>
+    def bulkIndex = Action.async { implicit request =>
         form.bindFromRequest.fold(
-            errors => Forbidden(errors.errorsAsJson),
-            store => Async {
-                WS.url(endpoint).post(Play.current.getFile("conf/elasticsearch/index.json")).map { response =>
-                    Logger.info(response.body)
-                    for {
-                        directory <- Files.newDirectoryStream(Paths.get(store)).filter(Files.isDirectory(_))
-                        file <- Files.newDirectoryStream(directory)
-                    } {
-                        val filename = file.getFileName().toString().replaceAllLiterally("%2F", ":")
-                        val xml = scala.xml.XML.loadFile(file.toFile())
-                        val json = Json.obj(
-                            "title"             -> (xml\"general"\"title").bestValue,
-                            "description"       -> (xml\"general"\"description").bestValue,
-                            "keyword"           -> (xml\"general"\"keyword").bestValues,
-                            "context"           -> (xml\"educational"\"context"\"value").map(_.text),
-                            "costs"             -> ((xml\"rights"\"cost"\"value").text == "yes"),
-                            "duration"          -> (xml\"educational"\"typicalLearningTime"\"duration").asDuration,
-                            "contribution"      -> (xml\"lifecycle"\"contribute").asContributions,
-                            "location"          -> (xml\"technical"\"location").headOption.map(_.text),
-                            "format"            -> (xml\"technical"\"format").headOption.map(_.text),
-                            "repository"        -> filename.split(":").headOption,
-                            "file"              -> file.toAbsolutePath().toString()
-                        )
-                        WS.url(s"$endpoint/lom/$filename").post(json).map { response =>
-                            Logger.debug(response.body)
-                        }
+            errors => Future(Forbidden(errors.errorsAsJson)),
+            store => WS.url(endpoint).post(Play.current.getFile("conf/elasticsearch/index.json")).map { response =>
+                Logger.info(response.body)
+                for {
+                    directory <- Files.newDirectoryStream(Paths.get(store)).filter(Files.isDirectory(_))
+                    file <- Files.newDirectoryStream(directory)
+                } {
+                    val filename = file.getFileName().toString().replaceAllLiterally("%2F", ":")
+                    val xml = scala.xml.XML.loadFile(file.toFile())
+                    val json = Json.obj(
+                        "title"             -> (xml\"general"\"title").bestValue,
+                        "description"       -> (xml\"general"\"description").bestValue,
+                        "keyword"           -> (xml\"general"\"keyword").bestValues,
+                        "context"           -> (xml\"educational"\"context"\"value").map(_.text),
+                        "costs"             -> ((xml\"rights"\"cost"\"value").text == "yes"),
+                        "duration"          -> (xml\"educational"\"typicalLearningTime"\"duration").asDuration,
+                        "contribution"      -> (xml\"lifecycle"\"contribute").asContributions,
+                        "location"          -> (xml\"technical"\"location").headOption.map(_.text),
+                        "format"            -> (xml\"technical"\"format").headOption.map(_.text),
+                        "repository"        -> filename.split(":").headOption,
+                        "file"              -> file.toAbsolutePath().toString()
+                    )
+                    WS.url(s"$endpoint/lom/$filename").post(json).map { response =>
+                        Logger.debug(response.body)
                     }
-                    Ok
                 }
+                Ok
             }
         )
     }

@@ -10,6 +10,7 @@ import play.api.libs.concurrent.Execution.Implicits._
 import play.api.libs.json.{ JsValue, Json }
 import play.api.libs.ws.WS
 import play.api.mvc.{ Action, Controller }
+import scala.concurrent.Future
 
 object Searcher extends Controller {
 
@@ -31,27 +32,23 @@ object Searcher extends Controller {
         Ok(views.html.main())
     }
 
-    def search = Action { implicit request =>
+    def search = Action.async { implicit request =>
         commandForm.bindFromRequest.fold(
-            errors => Forbidden(errors.errorsAsJson),
+            errors => Future(Forbidden(errors.errorsAsJson)),
             command => query(command.toSearchQuery)
         )
     }
 
-    def autocomplete(q: String) = Action {
+    def autocomplete(q: String) = Action.async {
         query(SearchCommand.toAutocompleteQuery(q))
     }
 
-    def show(id: String) = Action {
-        Async {
-            WS.url(s"$endpoint/lom/$id/_source").get.map {
-                case response if response.status == OK => Ok.sendFile(new File((response.json\"file").as[String]), inline = true).as(XML)
-                case response => NotFound
-            }
+    def show(id: String) = Action.async {
+        WS.url(s"$endpoint/lom/$id/_source").get.map {
+            case response if response.status == OK => Ok.sendFile(new File((response.json\"file").as[String]), inline = true).as(XML)
+            case response => NotFound
         }
     }
 
-    private def query(command: JsValue) = Async {
-        WS.url(s"$endpoint/_search").post(command).map(r => Ok(r.json))
-    }
+    private def query(command: JsValue) = WS.url(s"$endpoint/_search").post(command).map(r => Ok(r.json))
 }
